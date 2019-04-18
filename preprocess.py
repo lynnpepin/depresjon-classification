@@ -22,4 +22,6 @@
 #   (Time series x (Norm all vs Norm per), Meta Data) x (Linear x 1-hidden),
 #   and Time series x (Neural ODE, GRU/RNN/LSTM)
 
+# todo: Actual documentation, actual preprocessing
 
+path = "./depresjon-dataset/"
