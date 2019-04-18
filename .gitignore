@@ -1,3 +1,5 @@
 *pycache*
 *.pyc*
 *depresjon-dataset*
+*.7z*
+*.npy*
