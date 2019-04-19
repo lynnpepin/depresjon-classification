@@ -1,30 +1,34 @@
-# Preprocessing:
-# Output classification is "depressed" or "not depressed"
-# Input:
-#   Per sample, there is a one-variable time series,
-#   plus gender and age 'meta' data.
-#   Use a non-sequential NN:
-#       Time series input --> GRU --------> Rest of NN --> Out
-#            Gender/age 'meta' data  --/
+"""preprocess.py
 
-# Time series preproc:
-#   Data measurements are difficult-to-work-with variable-lengths,
-#   ranging from about 19000 samples to about 65000 samples.
-#   Let's cut data into 2000-sized samples, discard extraneous data.
-#   Then, normalize via 0-1 normalization
-#       Consider: max of values across ALL participants, or max per participant?
-#                 Different people might have different levels of activity, etc.
+Small script to preprocess the depresjon dataset. See README.
 
-# Metadata preproc:
-#   0-1 norm days recorded, one-hot encode gender, one-hot encode age
+Input files are one-variable time series with values distributed roughly
+geometrically.
 
-# Models to compare with:
-#   (Time series x (Norm all vs Norm per), Meta Data) x (Linear x 1-hidden),
-#   and Time series x (Neural ODE, GRU/RNN/LSTM)
+Because each time series can be a different length, rather than pad,
+we truncate and splice the first 2000*k values.
+    (E.g. A sequence of lenght 8621 becomes 4 sequences of length 2000,
+          and the last 621 values are discarded.)
 
-# todo: Write actual documentation
+Values are in the range 0-8000, and are normalized as x := lg(1+x)/lg(8001),
+then saved to condition_2000.npy, control_2000.npy.
 
 
+We should consider a mixture of files with this data:
+
+1. Use time series data,
+    a. Normalize [0,1] across all, or 
+    b. Normalize per column? (I.e. Per each respective person's max)
+2. And/or use meta data or age, gender?
+    If time series is fed in to LSTM, the output of LSTM can be concat. with metadata.
+3. What kind of model to use?
+    a. One layer perceptron, 1-layer MLP, more layers?
+    b. GRU, RNN, LSTM, etc.?
+    c. And compare to Neural ODE too.
+"""
+
+
+# Truncate and cut to file
 import numpy as np
 import pandas as pd
 
@@ -46,7 +50,13 @@ truncate = lambda series : series[:TS_LENGTH * (len(series) // TS_LENGTH)]
 condition = np.concatenate([truncate(series).reshape(-1, TS_LENGTH) for series in condition_raw])
 control = np.concatenate([truncate(series).reshape(-1, TS_LENGTH) for series in control_raw])
 
-# TODO - Write normalization functions!
+
+# data is roughly geometrically distributed; let's fix this and then scale down
+control = np.log(control + 1)
+condition = np.log(condition + 1)
+scale = max(control.max(), condition.max())
+control = control/scale
+condition = condition/scale
 
 np.save("condition_{}".format(TS_LENGTH), condition)
 np.save("control_{}".format(TS_LENGTH), control)
