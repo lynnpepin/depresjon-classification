@@ -17,8 +17,8 @@ TRAINSPLIT = 652/752
 VALSPLIT   = 100/652
 RANDOMSTATE= 413
 
-condition = np.load("condition_{}.npy".format(TS_LENGTH))
-control = np.load("control_{}.npy".format(TS_LENGTH))
+condition = np.load("condition_{}_emb.npy".format(TS_LENGTH))
+control = np.load("control_{}_emb.npy".format(TS_LENGTH))
 
 X = np.concatenate((condition, control), axis=0)
 y = to_categorical(np.array([0]*len(condition) + [1]*len(control)))
@@ -34,7 +34,7 @@ X_train, X_val, y_train, y_val   = train_test_split(X_train, y_train,
 
 
 model = Sequential()
-#model.add(Dense(4096, input_dim = TS_LENGTH, activation = 'relu'))
+model.add(Dense(4, input_dim = 2, activation = 'relu'))
 #model.add(Dense(2, activation = 'softmax'))
 model.add(Dense(2, input_dim = TS_LENGTH, activation = 'softmax'))
 
@@ -44,7 +44,7 @@ model.compile(loss='binary_crossentropy',
 
 history = model.fit(X_train, y_train,
                     batch_size = 32,
-                    epochs = 50,
+                    epochs = 50 ,
                     callbacks=[EarlyStopping(patience=10)],
                     validation_split = 0.1)
 
