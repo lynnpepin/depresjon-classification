@@ -3,6 +3,7 @@ Build a simple 1-layer classifier using Keras.
 """
 
 import numpy as np
+import os
 from sklearn.model_selection import train_test_split
 from keras.models import Sequential
 from keras.layers import Flatten, Dense, Activation, Input, GRU
@@ -17,8 +18,9 @@ TRAINSPLIT = 652/752
 VALSPLIT   = 100/652
 RANDOMSTATE= np.random.randint(1,2**16)
 
-condition = np.load("condition_{}_emb.npy".format(TS_LENGTH))
-control = np.load("control_{}_emb.npy".format(TS_LENGTH))
+cwd = os.getcwd()
+condition = np.load(cwd + "/condition_{}_emb.npy".format(TS_LENGTH))
+control = np.load(cwd + "/control_{}_emb.npy".format(TS_LENGTH))
 
 X = np.concatenate((condition, control), axis=0)
 y = to_categorical(np.array([0]*len(condition) + [1]*len(control)))
