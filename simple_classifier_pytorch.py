@@ -32,6 +32,11 @@ control = np.load("control_{}_emb.npy".format(TS_LENGTH))
 X = np.concatenate((condition, control), axis=0)
 y = to_categorical(np.array([0]*len(condition) + [1]*len(control)))
 
+
+# TODO - Implement pytorch "dataset" class to use here for loading.
+# See: https://github.com/utkuozbulak/pytorch-custom-dataset-examples
+# See: https://old.reddit.com/r/MachineLearning/comments/bcfyo2/d_pytorch_implementation_best_practices/
+
 X_train, X_test, y_train, y_test = train_test_split(X, y,
                                                     test_size = 1-TRAINSPLIT,
                                                     random_state = RANDOMSTATE)

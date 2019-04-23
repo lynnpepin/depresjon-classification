@@ -15,7 +15,7 @@ from time import time
 TS_LENGTH = 2000
 TRAINSPLIT = 652/752
 VALSPLIT   = 100/652
-RANDOMSTATE= 413
+RANDOMSTATE= np.random.randint(1,2**16)
 
 condition = np.load("condition_{}_emb.npy".format(TS_LENGTH))
 control = np.load("control_{}_emb.npy".format(TS_LENGTH))
