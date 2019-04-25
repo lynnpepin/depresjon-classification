@@ -14,8 +14,8 @@ condition = np.load("condition_{}.npy".format(TS_LENGTH))
 control = np.load("control_{}.npy".format(TS_LENGTH))
 SHOWFIG = False
 # Size of each point
-SIZE    = .3
-ALPHA   = 1
+SIZE    = .4
+ALPHA   = .9
 
 """
 emb_cond = umap.UMAP().fit_transform(condition)

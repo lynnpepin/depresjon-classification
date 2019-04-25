@@ -1,5 +1,6 @@
 """
 Build a simple 1-layer classifier using Keras.
+.88 .92 .84 .9 .8 .82 .86 .91 .9 .92
 """
 
 import numpy as np
@@ -36,7 +37,7 @@ X_train, X_val, y_train, y_val   = train_test_split(X_train, y_train,
 
 
 model = Sequential()
-model.add(Dense(4, input_dim = 2, activation = 'relu'))
+model.add(Dense(6, input_dim = 2, activation = 'relu'))
 #model.add(Dense(2, activation = 'softmax'))
 model.add(Dense(2, input_dim = TS_LENGTH, activation = 'softmax'))
 
@@ -45,10 +46,11 @@ model.compile(loss='binary_crossentropy',
      metrics=['accuracy'])
 
 history = model.fit(X_train, y_train,
-                    batch_size = 32,
-                    epochs = 50 ,
+                    batch_size = 128,
+                    epochs = 100 ,
                     callbacks=[EarlyStopping(patience=10)],
-                    validation_split = 0.1)
+                    validation_split = 0.1,
+                    verbose=0)
 
 # TODO: More in depth analysis
 yh = model.predict(X_val)

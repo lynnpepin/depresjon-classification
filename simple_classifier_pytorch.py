@@ -17,6 +17,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
+from torch.utils.data.dataset import Dataset
+from torch.autograd import Variable
 
 TS_LENGTH = 2000
 TRAINSPLIT = 652/752
@@ -26,33 +28,36 @@ RANDOMSTATE= 413
 torch.manual_seed(RANDOMSTATE)
 np.random.seed(RANDOMSTATE)
 
-condition = np.load("condition_{}_emb.npy".format(TS_LENGTH))
-control = np.load("control_{}_emb.npy".format(TS_LENGTH))
+class DepresjonDataset(Dataset):
+    def __init__(self, emb=True, ts_length = TS_LENGTH):
+        # Read emb / not emb
+        # TODO: Run preprocess, embedding if not done already
+        # TODO: Train, test, shuffle state?
+        if emb:
+            self.condition = np.load("condition_{}_emb.npy".format(ts_length))
+            self.control = np.load("control_{}_emb.npy".format(ts_length))
+        else:
+            self.condition = np.load("condition_{}.npy".format(ts_length))
+            self.control = np.load("control_{}.npy".format(ts_length))
+    
+        self.X = np.concatenate((self.condition, self.control), axis=0)
+        self.y = to_categorical(np.array([0]*len(self.condition) + [1]*len(self.control)))
+    
+    def __getitem__(self, index):
+        return (self.X[index], self.y[index])
+    
+    def __len__(self):
+        assert(len(self.X) == len(self.y))
+        return len(self.X)
 
-X = np.concatenate((condition, control), axis=0)
-y = to_categorical(np.array([0]*len(condition) + [1]*len(control)))
+loader = torch.utils.data.DataLoader(dataset=DepresjonDataset(),
+                                     batch_size=32,
+                                     shuffle=True)
 
 
 # TODO - Implement pytorch "dataset" class to use here for loading.
 # See: https://github.com/utkuozbulak/pytorch-custom-dataset-examples
 # See: https://old.reddit.com/r/MachineLearning/comments/bcfyo2/d_pytorch_implementation_best_practices/
-
-X_train, X_test, y_train, y_test = train_test_split(X, y,
-                                                    test_size = 1-TRAINSPLIT,
-                                                    random_state = RANDOMSTATE)
-
-X_train, X_val, y_train, y_val   = train_test_split(X_train, y_train,
-                                                    test_size=VALSPLIT,
-                                                    random_state = RANDOMSTATE)
-
-# Data Loader (Input Pipeline)
-train_loader = torch.utils.data.DataLoader(dataset=X_train, 
-                                           batch_size=32, 
-                                           shuffle=False)
-
-test_loader = torch.utils.data.DataLoader(dataset=X_val, 
-                                          batch_size=32, 
-                                          shuffle=False)
 
 
 class Net(nn.Module):
@@ -61,6 +66,7 @@ class Net(nn.Module):
         self.fc1 = nn.Linear(input_size, hidden_size) 
         self.relu = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, num_classes)  
+
     
     def forward(self, x):
         out = self.fc1(x)
@@ -74,15 +80,14 @@ criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters())
 
 for epoch in range(50):
-    for i, sample in 
-    for i, samples in enumerate(train_loader):  
-        # Convert torch tensor to Variable
-        # TODO
+    for i, (x, y) in enumerate(loader):
+        #x_input = Variable(x.view(-1, 2))
+        #y_output = Variable(y)
         
         # Forward + Backward + Optimize
         optimizer.zero_grad()  # zero the gradient buffer
-        outputs = net(samples)
-        loss = criterion(outputs, labels)
+        outputs = net(x)
+        loss = criterion(outputs, y)
         loss.backward()
         optimizer.step()
         
