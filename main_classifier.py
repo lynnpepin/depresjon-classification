@@ -2,12 +2,12 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score
-import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.autograd import Variable
 import numpy as np
+from pathlib import Path
 
 TS_LENGTH = 2000
 TRAINSPLIT = 652/752
@@ -30,11 +30,9 @@ class Net(nn.Module):
         return out
 
 #gets full path of data files (assuming they are in same folder as this python file)
-full_path = os.path.realpath(__file__)
-folder_path = os.path.dirname(full_path)
 #load data from npy files
-condition = np.load(folder_path+"\\condition_{}_emb.npy".format(TS_LENGTH))
-control = np.load(folder_path+"\\control_{}_emb.npy".format(TS_LENGTH))
+condition = np.load(Path("./condition_{}_emb.npy".format(TS_LENGTH)))
+control = np.load(Path("./control_{}_emb.npy".format(TS_LENGTH)))
 
 X = np.concatenate((condition, control), axis=0)
 y = np.array([0]*len(condition) + [1]*len(control))
