@@ -11,7 +11,7 @@ Build a simple 1-layer classifier using Pytorch.
 import numpy as np
 from sklearn.model_selection import train_test_split
 from keras.utils import to_categorical
-
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -26,8 +26,11 @@ RANDOMSTATE= 413
 torch.manual_seed(RANDOMSTATE)
 np.random.seed(RANDOMSTATE)
 
-condition = np.load("condition_{}_emb.npy".format(TS_LENGTH))
-control = np.load("control_{}_emb.npy".format(TS_LENGTH))
+full_path = os.path.realpath(__file__)
+folder_path = os.path.dirname(full_path)
+
+condition = np.load(folder_path+"\\condition_{}_emb.npy".format(TS_LENGTH))
+control = np.load(folder_path+"\\control_{}_emb.npy".format(TS_LENGTH))
 
 X = np.concatenate((condition, control), axis=0)
 y = to_categorical(np.array([0]*len(condition) + [1]*len(control)))
@@ -46,22 +49,22 @@ X_train, X_val, y_train, y_val   = train_test_split(X_train, y_train,
                                                     random_state = RANDOMSTATE)
 
 # Data Loader (Input Pipeline)
-train_loader = torch.utils.data.DataLoader(dataset=X_train, 
-                                           batch_size=32, 
+train_loader = torch.utils.data.DataLoader(dataset=X_train,
+                                           batch_size=32,
                                            shuffle=False)
 
-test_loader = torch.utils.data.DataLoader(dataset=X_val, 
-                                          batch_size=32, 
+test_loader = torch.utils.data.DataLoader(dataset=X_val,
+                                          batch_size=32,
                                           shuffle=False)
 
 
 class Net(nn.Module):
     def __init__(self, input_size = 2, hidden_size = 4, num_classes = 2):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size) 
+        self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, num_classes)  
-    
+        self.fc2 = nn.Linear(hidden_size, num_classes)
+
     def forward(self, x):
         out = self.fc1(x)
         out = self.relu(out)
@@ -70,22 +73,22 @@ class Net(nn.Module):
 
 net = Net()
 # Loss and Optimizer
-criterion = nn.CrossEntropyLoss()  
+criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters())
 
 for epoch in range(50):
-    for i, sample in 
-    for i, samples in enumerate(train_loader):  
+    #for i, sample in
+    for i, samples in enumerate(train_loader):
         # Convert torch tensor to Variable
         # TODO
-        
+
         # Forward + Backward + Optimize
         optimizer.zero_grad()  # zero the gradient buffer
         outputs = net(samples)
         loss = criterion(outputs, labels)
         loss.backward()
         optimizer.step()
-        
+
         if (i+1) % 100 == 0:
-            print ('Epoch [%d/%d], Step [%d/%d], Loss: %.4f' 
+            print ('Epoch [%d/%d], Step [%d/%d], Loss: %.4f'
                    %(epoch+1, num_epochs, i+1, len(train_dataset)//batch_size, loss.data[0]))

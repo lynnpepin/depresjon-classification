@@ -18,9 +18,11 @@ TRAINSPLIT = 652/752
 VALSPLIT   = 100/652
 RANDOMSTATE= np.random.randint(1,2**16)
 
-cwd = os.getcwd()
-condition = np.load(cwd + "/condition_{}_emb.npy".format(TS_LENGTH))
-control = np.load(cwd + "/control_{}_emb.npy".format(TS_LENGTH))
+full_path = os.path.realpath(__file__)
+folder_path = os.path.dirname(full_path)
+
+condition = np.load(folder_path+"\\condition_{}_emb.npy".format(TS_LENGTH))
+control = np.load(folder_path+"\\control_{}_emb.npy".format(TS_LENGTH))
 
 X = np.concatenate((condition, control), axis=0)
 y = to_categorical(np.array([0]*len(condition) + [1]*len(control)))
