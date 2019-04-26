@@ -8,7 +8,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score
 from keras.utils import to_categorical
-
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -30,8 +30,11 @@ torch.manual_seed(RANDOMSTATE)
 np.random.seed(RANDOMSTATE)
 
 # Load the condition and control, reshape into input X and target y, then split into train, test sets.
-condition = np.load(Path("./condition_{}_emb.npy".format(TS_LENGTH)))
-control = np.load(Path("./control_{}_emb.npy".format(TS_LENGTH)))
+full_path = os.path.realpath(__file__)
+folder_path = os.path.dirname(full_path)
+
+condition = np.load(folder_path+"\\condition_{}_emb.npy".format(TS_LENGTH))
+control = np.load(folder_path+"\\control_{}_emb.npy".format(TS_LENGTH))
 X = np.concatenate((condition, control), axis=0)
 y = np.array([0] * len(condition) + [1] * len(control))
 train_X, test_X, train_y, test_y = train_test_split(
@@ -89,7 +92,7 @@ for epoch in range(NUM_EPOCHS):
         # Forward + Backward + Optimize
         optimizer.zero_grad()  # zero the gradient buffer
         outputs = net(Variable(x))
-        loss = criterion(outputs, Variable(y))
+        loss = criterion(outputs, Variable(y).long())
         loss.backward()
         optimizer.step()
 
@@ -112,4 +115,3 @@ print('macro recall', recall_score(
     test_y.data, predict_y.data, average='macro'))
 print('micro recall', recall_score(
     test_y.data, predict_y.data, average='micro'))
-
