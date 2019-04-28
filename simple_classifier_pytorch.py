@@ -1,17 +1,14 @@
 """
 Build a simple 1-layer classifier using Pytorch.
-
 # https://github.com/andrewliao11/dni.pytorch/blob/master/mlp.py
-
-# TODO: Train loader needs to have tuple (samples, labels), not just samples.
-# TODO: And then work on the training part!
-
 """
 
+from pathlib import Path
 import numpy as np
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score
 from keras.utils import to_categorical
-
+import os
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -21,76 +18,99 @@ from torch.utils.data.dataset import Dataset
 from torch.autograd import Variable
 
 TS_LENGTH = 2000
-TRAINSPLIT = 652/752
-VALSPLIT   = 100/652
-RANDOMSTATE= 413
+TRAINSPLIT = 652 / 752
+VALSPLIT = 100 / 652
+RANDOMSTATE = 413
+NUM_EPOCHS = 100
+BATCH_SIZE = 32
 
+# Set the random seed
 torch.manual_seed(RANDOMSTATE)
 np.random.seed(RANDOMSTATE)
 
-class DepresjonDataset(Dataset):
-    def __init__(self, emb=True, ts_length = TS_LENGTH):
-        # Read emb / not emb
-        # TODO: Run preprocess, embedding if not done already
-        # TODO: Train, test, shuffle state?
-        if emb:
-            self.condition = np.load("condition_{}_emb.npy".format(ts_length))
-            self.control = np.load("control_{}_emb.npy".format(ts_length))
-        else:
-            self.condition = np.load("condition_{}.npy".format(ts_length))
-            self.control = np.load("control_{}.npy".format(ts_length))
-    
-        self.X = np.concatenate((self.condition, self.control), axis=0)
-        self.y = to_categorical(np.array([0]*len(self.condition) + [1]*len(self.control)))
+
+# Load the condition and control, reshape into input X and target y, then split into train, test sets.
+root = os.path.curdir
+
+condition = np.load(
+    os.path.join(root, "condition_{}_emb.npy").format(TS_LENGTH))
+control = np.load(os.path.join(root, "control_{}_emb.npy").format(TS_LENGTH))
+X = np.concatenate((condition, control), axis=0)
+y = np.array([0] * len(condition) + [1] * len(control))
+
+train_X, test_X, train_y, test_y = train_test_split(
+    X, y, test_size=1 - TRAINSPLIT, random_state=RANDOMSTATE)
+
+# The Dataset class required by PyTorch
+class GenericDataset(Dataset):
+    def __init__(self, X, y):
+        self.X = X
+        self.y = y
     
     def __getitem__(self, index):
         return (self.X[index], self.y[index])
     
     def __len__(self):
-        assert(len(self.X) == len(self.y))
+        assert (len(self.X) == len(self.y))
         return len(self.X)
 
-loader = torch.utils.data.DataLoader(dataset=DepresjonDataset(),
-                                     batch_size=32,
-                                     shuffle=True)
+train_dataset = GenericDataset(train_X, train_y)
+test_dataset = GenericDataset(test_X, test_y)
 
+train_loader = torch.utils.data.DataLoader(
+    dataset=train_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-# TODO - Implement pytorch "dataset" class to use here for loading.
-# See: https://github.com/utkuozbulak/pytorch-custom-dataset-examples
-# See: https://old.reddit.com/r/MachineLearning/comments/bcfyo2/d_pytorch_implementation_best_practices/
+test_loader = torch.utils.data.DataLoader(
+    dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=True)
 
-
+# Define our NN:
 class Net(nn.Module):
-    def __init__(self, input_size = 2, hidden_size = 4, num_classes = 2):
+    def __init__(self, input_size=2, hidden_size=4, num_classes=2):
         super(Net, self).__init__()
-        self.fc1 = nn.Linear(input_size, hidden_size) 
+        self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
-        self.fc2 = nn.Linear(hidden_size, num_classes)  
+        self.fc2 = nn.Linear(hidden_size, num_classes)
 
-    
     def forward(self, x):
         out = self.fc1(x)
         out = self.relu(out)
         out = self.fc2(out)
         return out
 
+
 net = Net()
 # Loss and Optimizer
-criterion = nn.CrossEntropyLoss()  
+criterion = nn.CrossEntropyLoss()
 optimizer = torch.optim.Adam(net.parameters())
 
-for epoch in range(50):
-    for i, (x, y) in enumerate(loader):
-        #x_input = Variable(x.view(-1, 2))
-        #y_output = Variable(y)
-        
+# Time to Train
+for epoch in range(NUM_EPOCHS):
+    for i, sample in enumerate(train_loader):
+        x, y = sample
         # Forward + Backward + Optimize
         optimizer.zero_grad()  # zero the gradient buffer
-        outputs = net(x)
-        loss = criterion(outputs, y)
+        outputs = net(Variable(x))
+        loss = criterion(outputs, Variable(y).long())
         loss.backward()
         optimizer.step()
-        
-        if (i+1) % 100 == 0:
-            print ('Epoch [%d/%d], Step [%d/%d], Loss: %.4f' 
-                   %(epoch+1, num_epochs, i+1, len(train_dataset)//batch_size, loss.data[0]))
+
+    if (epoch + 1) % 10 == 0:
+        print('Epoch [%d/%d], Step [%d/%d], Loss: %.4f' %
+              (epoch + 1, NUM_EPOCHS, i + 1, len(train_dataset) // BATCH_SIZE,
+               loss.data))
+
+# Save the Model
+torch.save(net.state_dict(), 'model.pkl')
+
+predict_out = torch.Tensor(test_X)
+_, predict_y = torch.max(predict_out, 1)
+print('prediction accuracy', accuracy_score(test_y.data, predict_y.data))
+print('macro precision',
+      precision_score(test_y.data, predict_y.data, average='macro'))
+print('micro precision',
+      precision_score(test_y.data, predict_y.data, average='micro'))
+print('macro recall', recall_score(
+    test_y.data, predict_y.data, average='macro'))
+print('micro recall', recall_score(
+    test_y.data, predict_y.data, average='micro'))
+
