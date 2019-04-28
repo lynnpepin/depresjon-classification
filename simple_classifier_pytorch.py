@@ -30,13 +30,14 @@ torch.manual_seed(RANDOMSTATE)
 np.random.seed(RANDOMSTATE)
 
 # Load the condition and control, reshape into input X and target y, then split into train, test sets.
-full_path = os.path.realpath(__file__)
-folder_path = os.path.dirname(full_path)
+root = os.path.curdir
 
-condition = np.load(folder_path+"\\condition_{}_emb.npy".format(TS_LENGTH))
-control = np.load(folder_path+"\\control_{}_emb.npy".format(TS_LENGTH))
+condition = np.load(
+    os.path.join(root, "condition_{}_emb.npy").format(TS_LENGTH))
+control = np.load(os.path.join(root, "control_{}_emb.npy").format(TS_LENGTH))
 X = np.concatenate((condition, control), axis=0)
 y = np.array([0] * len(condition) + [1] * len(control))
+
 train_X, test_X, train_y, test_y = train_test_split(
     X, y, test_size=1 - TRAINSPLIT, random_state=RANDOMSTATE)
 
@@ -115,3 +116,4 @@ print('macro recall', recall_score(
     test_y.data, predict_y.data, average='macro'))
 print('micro recall', recall_score(
     test_y.data, predict_y.data, average='micro'))
+
