@@ -1,7 +1,7 @@
 """
 A small visualization of the depresjon dataset, using UMAP.
 
-Cyan is depressed, magenta is not.
+Cyan is depressed, magenta is control.
 """
 
 import matplotlib.pyplot as plt
@@ -10,8 +10,6 @@ import umap
 
 import numpy as np
 TS_LENGTH = 2000
-condition = np.load("condition_{}.npy".format(TS_LENGTH))
-control = np.load("control_{}.npy".format(TS_LENGTH))
 SHOWFIG = False
 # Size of each point
 SIZE = .3
