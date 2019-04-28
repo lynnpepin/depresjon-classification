@@ -21,7 +21,6 @@ TS_LENGTH = 2000
 TRAINSPLIT = 652 / 752
 VALSPLIT = 100 / 652
 RANDOMSTATE = 413
-
 NUM_EPOCHS = 100
 BATCH_SIZE = 32
 
@@ -47,10 +46,10 @@ class GenericDataset(Dataset):
     def __init__(self, X, y):
         self.X = X
         self.y = y
-
+    
     def __getitem__(self, index):
         return (self.X[index], self.y[index])
-
+    
     def __len__(self):
         assert (len(self.X) == len(self.y))
         return len(self.X)
