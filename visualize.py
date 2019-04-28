@@ -16,6 +16,7 @@ SHOWFIG = False
 # Size of each point
 SIZE = .3
 ALPHA = 1
+
 """
 emb_cond = umap.UMAP().fit_transform(condition)
 emb_cont = umap.UMAP().fit_transform(control)

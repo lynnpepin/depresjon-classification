@@ -28,6 +28,7 @@ BATCH_SIZE = 32
 torch.manual_seed(RANDOMSTATE)
 np.random.seed(RANDOMSTATE)
 
+
 # Load the condition and control, reshape into input X and target y, then split into train, test sets.
 root = os.path.curdir
 
@@ -39,7 +40,6 @@ y = np.array([0] * len(condition) + [1] * len(control))
 
 train_X, test_X, train_y, test_y = train_test_split(
     X, y, test_size=1 - TRAINSPLIT, random_state=RANDOMSTATE)
-
 
 # The Dataset class required by PyTorch
 class GenericDataset(Dataset):
@@ -54,7 +54,6 @@ class GenericDataset(Dataset):
         assert (len(self.X) == len(self.y))
         return len(self.X)
 
-
 train_dataset = GenericDataset(train_X, train_y)
 test_dataset = GenericDataset(test_X, test_y)
 
@@ -63,7 +62,6 @@ train_loader = torch.utils.data.DataLoader(
 
 test_loader = torch.utils.data.DataLoader(
     dataset=test_dataset, batch_size=BATCH_SIZE, shuffle=True)
-
 
 # Define our NN:
 class Net(nn.Module):

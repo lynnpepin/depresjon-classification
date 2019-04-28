@@ -1,5 +1,6 @@
 """
 Build a simple 1-layer classifier using Keras.
+.88 .92 .84 .9 .8 .82 .86 .91 .9 .92
 """
 
 import numpy as np
