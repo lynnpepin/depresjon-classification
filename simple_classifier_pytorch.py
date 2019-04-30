@@ -3,7 +3,6 @@ Build a simple 1-layer classifier using Pytorch.
 # https://github.com/andrewliao11/dni.pytorch/blob/master/mlp.py
 """
 
-from pathlib import Path
 import numpy as np
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, precision_score, recall_score

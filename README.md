@@ -17,8 +17,10 @@ The structure should be as such:
 
 ## Instructions:
 
-**Preprocess** by running preprocess.py to generate conditon\_2000.npy, control\_2000.npy, conditon\_2000\_emb.npy, control\_2000\_emb.npy.
+1. **Install** torchdiffeq from <https://github.com/rtqichen/torchdiffeq>.
 
-**Note:** Each run of preprocess.py will generate a different UMAP embedding! Run **visualize.py** to see what it looks like.
+2. **Preprocess** by running preprocess.py to generate conditon\_2000.npy, control\_2000.npy, conditon\_2000\_emb.npy, control\_2000\_emb.npy.
 
-The other Python scripts are classifiers.
+3. **Note:** Each run of preprocess.py will generate a different UMAP embedding! Run **visualize.py** to see what it looks like.
+
+The other Python scripts are example scripts that train a classifier.
